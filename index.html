@@ -1,0 +1,181 @@
+<?php
+// config.php - Database Configuration
+$host = "localhost";
+$user = "root";
+$password = "";
+$database = "music_stream";
+
+$conn = mysqli_connect($host, $user, $password, $database);
+
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+?>
+```
+
+```php
+<?php
+// login.php - User Authentication
+session_start();
+include 'config.php';
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    
+    $sql = "SELECT * FROM users WHERE email='$email' AND password='$password'";
+    $result = mysqli_query($conn, $sql);
+    
+    if (mysqli_num_rows($result) > 0) {
+        $_SESSION['user'] = $email;
+        header("Location: dashboard.php");
+    } else {
+        echo "Invalid credentials!";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg p-8 max-w-md w-full">
+        <h2 class="text-2xl font-bold mb-6 text-center">Login to MusicStream</h2>
+        <form method="POST">
+            <div class="mb-4">
+                <label class="block text-gray-300 mb-2">Email</label>
+                <input type="email" name="email" class="w-full bg-gray-700 rounded px-4 py-2" required>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-300 mb-2">Password</label>
+                <input type="password" name="password" class="w-full bg-gray-700 rounded px-4 py-2" required>
+            </div>
+            <button type="submit" class="bg-green-500 hover:bg-green-600 w-full py-3 rounded font-medium">Login</button>
+        </form>
+        <p class="text-center mt-4 text-gray-400">Don't have account? <a href="signup.php" class="text-green-500">Sign Up</a></p>
+    </div>
+</body>
+</html>
+```
+
+```php
+<?php
+// dashboard.php - User Dashboard
+session_start();
+include 'config.php';
+
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$user_email = $_SESSION['user'];
+$user_query = mysqli_query($conn, "SELECT username FROM users WHERE email='$user_email'");
+$user_data = mysqli_fetch_assoc($user_query);
+$username = $user_data['username'];
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - MusicStream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <header class="bg-black py-4 px-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-green-500">MusicStream</h1>
+            <div class="flex items-center space-x-4">
+                <span>Welcome, <?php echo $username; ?></span>
+                <a href="logout.php" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <h2 class="text-3xl font-bold mb-6">Your Music Library</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <?php
+            $songs_query = mysqli_query($conn, "SELECT * FROM songs LIMIT 6");
+            while ($song = mysqli_fetch_assoc($songs_query)) {
+                echo '<div class="bg-gray-800 rounded-lg p-4">';
+                echo '<h3 class="font-bold text-xl mb-2">' . $song['title'] . '</h3>';
+                echo '<p class="text-gray-400 mb-3">' . $song['artist'] . '</p>';
+                echo '<audio controls class="w-full">';
+                echo '<source src="' . $song['file_path'] . '" type="audio/mpeg">';
+                echo '</audio>';
+                echo '</div>';
+            }
+            ?>
+        </div>
+    </main>
+</body>
+</html>
+```
+
+```sql
+<artifact identifier="music-database" type="text/sql" title="MySQL Database Structure">
+-- Database: music_stream
+CREATE DATABASE IF NOT EXISTS music_stream;
+USE music_stream;
+
+-- Users table
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Albums table
+CREATE TABLE albums (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100) NOT NULL,
+    artist VARCHAR(100) NOT NULL,
+    cover_image VARCHAR(255),
+    release_date DATE
+);
+
+-- Songs table
+CREATE TABLE songs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100) NOT NULL,
+    artist VARCHAR(100) NOT NULL,
+    album_id INT,
+    duration TIME,
+    file_path VARCHAR(255),
+    FOREIGN KEY (album_id) REFERENCES albums(id)
+);
+
+-- Videos table
+CREATE TABLE videos (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100) NOT NULL,
+    artist VARCHAR(100) NOT NULL,
+    url VARCHAR(255),
+    thumbnail VARCHAR(255)
+);
+
+-- Insert sample data
+INSERT INTO users (username, email, password) VALUES 
+('admin', 'admin@musicstream.com', 'password123'),
+('user1', 'user1@example.com', 'password123');
+
+INSERT INTO albums (title, artist, cover_image, release_date) VALUES 
+('Summer Hits 2023', 'Various Artists', 'album1.jpg', '2023-06-01'),
+('Chill Vibes', 'DJ Relax', 'album2.jpg', '2023-05-15');
+
+INSERT INTO songs (title, artist, album_id, duration, file_path) VALUES 
+('Blinding Lights', 'The Weeknd', 1, '03:22', 'music/song1.mp3'),
+('Stay', 'The Kid LAROI, Justin Bieber', 1, '02:23', 'music/song2.mp3');
+
+INSERT INTO videos (title, artist, url, thumbnail) VALUES 
+('Official Music Video', 'Artist Name', 'https://youtube.com/watch?v=abc', 'thumb1.jpg'),
+('Live Performance', 'Band Name', 'https://youtube.com/watch?v=def', 'thumb2.jpg');

@@ -80,6 +80,20 @@ Anda dapat menggunakan akun uji coba di bawah ini untuk mencoba sistem:
 
 ---
 
+<<<<<<< HEAD
+=======
+## Testing Hosting
+(Ketik di CMD) 
+ngrok config add-authtoken 3ERPYSRhje3P69Ha8ywptbUnYi1_59pGwySJQtkyimgGrSjVH
+
+ngrok http 80
+
+lalu buka link ini :
+https://arrogance-gentile-busboy.ngrok-free.dev/web-programan/
+
+---
+
+>>>>>>> e7ccf636d76e4998410ce473281f3150bbfd3c69
 ## 📂 Struktur Direktori Proyek
 
 ```bash

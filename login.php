@@ -137,7 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </main>
 
         <footer class="mt-12 text-center text-slate-500 text-xs">
-            <p>© 2023 GMusic. All rights reserved.</p>
+            <p>© 2026 GMusic. All rights reserved.</p>
         </footer>
     </div>
 

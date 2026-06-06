@@ -66,8 +66,8 @@ $has_video = !empty($song['file_video']);
 
         <?php if ($has_video): ?>
         <div class="bg-black/50 p-1 rounded-full flex items-center shadow-inner">
-            <button id="btn-toggle-audio" class="px-6 py-2 rounded-full text-sm font-bold bg-[#333] text-white transition-colors" onclick="switchView('audio')">Lyrics</button>
-            <button id="btn-toggle-video" class="px-6 py-2 rounded-full text-sm font-bold text-slate-400 hover:text-white transition-colors" onclick="switchView('video')">Video</button>
+            <button id="btn-toggle-audio" class="px-6 py-2 rounded-full text-sm font-bold <?php echo $has_video ? 'text-slate-400 hover:text-white' : 'bg-[#333] text-white'; ?> transition-colors" onclick="switchView('audio')">Lyrics</button>
+            <button id="btn-toggle-video" class="px-6 py-2 rounded-full text-sm font-bold <?php echo $has_video ? 'bg-[#333] text-white' : 'text-slate-400 hover:text-white'; ?> transition-colors" onclick="switchView('video')">Video</button>
         </div>
         <?php endif; ?>
     </div>
@@ -77,8 +77,8 @@ $has_video = !empty($song['file_video']);
         
         <?php if ($has_video): ?>
         <!-- VIDEO VIEW -->
-        <div id="view-video" class="hidden w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl bg-black relative group">
-            <video id="detail-video-player" class="w-full max-h-[60vh] object-cover brightness-50 group-hover:brightness-100 transition-all duration-500" poster="uploads/covers/<?php echo htmlspecialchars($cover); ?>" loop playsinline>
+        <div id="view-video" class="<?php echo $has_video ? '' : 'hidden'; ?> w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl bg-black relative group">
+            <video id="detail-video-player" class="w-full max-h-[60vh] object-cover brightness-50 group-hover:brightness-100 transition-all duration-500" poster="uploads/covers/<?php echo htmlspecialchars($cover); ?>" loop playsinline autoplay muted>
                 <source src="uploads/video/<?php echo htmlspecialchars($song['file_video']); ?>" type="video/mp4">
             </video>
             <!-- Custom Video Overlay or controls could go here, for now using standard or no controls relying on global play/pause -->
@@ -86,7 +86,7 @@ $has_video = !empty($song['file_video']);
         <?php endif; ?>
 
         <!-- AUDIO/LYRICS VIEW -->
-        <div id="view-audio" class="w-full">
+        <div id="view-audio" class="<?php echo $has_video ? 'hidden' : ''; ?> w-full">
             <h2 class="text-2xl font-bold text-white mb-6">Lyrics</h2>
             <div class="max-w-3xl bg-black/20 p-8 rounded-xl backdrop-blur-sm">
                 <div class="text-2xl font-bold leading-relaxed text-slate-300 pointer-events-none" id="detail-lyrics" style="line-height: 1.8;">
@@ -152,34 +152,27 @@ $has_video = !empty($song['file_video']);
             viewVideo.classList.remove('hidden');
             
             btnAudio.classList.remove('bg-[#333]', 'text-white');
-            btnAudio.classList.add('text-slate-400');
+            btnAudio.classList.add('text-slate-400', 'hover:text-white');
             
             btnVideo.classList.add('bg-[#333]', 'text-white');
-            btnVideo.classList.remove('text-slate-400');
+            btnVideo.classList.remove('text-slate-400', 'hover:text-white');
 
-            // Pause global audio, play local video
-            if (globalAudioPlayer && !globalAudioPlayer.paused) {
-                globalAudioPlayer.pause();
-                window.isPlaying = false;
-                document.getElementById('play-pause-icon').textContent = 'play_arrow';
-            }
             if (localVideoPlayer) {
-                // Sync time just roughly if same track
-                // localVideoPlayer.currentTime = globalAudioPlayer.currentTime;
-                localVideoPlayer.play();
-                localVideoPlayer.setAttribute("controls", "controls");
+                localVideoPlayer.muted = true;
+                if (globalAudioPlayer && !globalAudioPlayer.paused) {
+                    localVideoPlayer.play().catch(e => console.log(e));
+                }
             }
         } else {
             viewVideo.classList.add('hidden');
             viewAudio.classList.remove('hidden');
             
             btnVideo.classList.remove('bg-[#333]', 'text-white');
-            btnVideo.classList.add('text-slate-400');
+            btnVideo.classList.add('text-slate-400', 'hover:text-white');
             
             btnAudio.classList.add('bg-[#333]', 'text-white');
-            btnAudio.classList.remove('text-slate-400');
+            btnAudio.classList.remove('text-slate-400', 'hover:text-white');
             
-            // Pause local video
             if (localVideoPlayer) localVideoPlayer.pause();
         }
     }

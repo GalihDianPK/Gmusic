@@ -1,3 +1,8 @@
+<?php
+if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')) {
+    return;
+}
+?>
                 </div> <!-- End Inner P-6 Wrapper -->
             </div> <!-- End Scrollable Page Content -->
         </main> <!-- End Main -->
@@ -223,8 +228,8 @@
                 miniCover.src = 'uploads/covers/default_cover.jpg';
             }
 
-            // Sync with Player Page if it's currently open
-            if(window.syncPlayerPageUI) window.syncPlayerPageUI(track);
+            // Sync with Player Page or navigate to it
+            navigateTo("player.php?id=" + track.id);
 
             // Fetch song details via JS or just assume we don't have video URL directly in queue unless explicitly added from API
             // Wait, tracksArray now does not predictably have file_video unless I update index.php to fetch it.
@@ -305,21 +310,35 @@
         };
 
         audioPlayer.addEventListener('ended', () => { playNext(); });
-
+ 
         window.togglePlayPause = function() {
             if (!audioPlayer.src || audioPlayer.src.endsWith('/null') || audioPlayer.src === window.location.href) return;
-            if (isPlaying) {
-                audioPlayer.pause();
-                miniVideo.pause();
-                playPauseIcon.textContent = 'play_arrow';
+            if (audioPlayer.paused) {
+                audioPlayer.play().catch(e => console.log(e));
             } else {
-                audioPlayer.play();
-                if(!miniVideo.classList.contains('hidden')) miniVideo.play();
-                playPauseIcon.textContent = 'pause';
+                audioPlayer.pause();
             }
-            isPlaying = !isPlaying;
         };
 
+        audioPlayer.addEventListener('play', () => {
+            isPlaying = true;
+            playPauseIcon.textContent = 'pause';
+            if(!miniVideo.classList.contains('hidden')) miniVideo.play().catch(e => console.log(e));
+            const detailVideo = document.getElementById('detail-video-player');
+            if (detailVideo) {
+                detailVideo.muted = true;
+                detailVideo.play().catch(e => console.log(e));
+            }
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            isPlaying = false;
+            playPauseIcon.textContent = 'play_arrow';
+            miniVideo.pause();
+            const detailVideo = document.getElementById('detail-video-player');
+            if (detailVideo) detailVideo.pause();
+        });
+ 
         audioPlayer.addEventListener('timeupdate', () => {
             const current = audioPlayer.currentTime;
             const duration = audioPlayer.duration;
@@ -426,8 +445,121 @@
         };
 
         window.toggleLyricsPanel = function() {
-            const t = document.getElementById('footer-title').href;
-            if(t && !t.endsWith('#')) window.location.href = t;
+            const t = document.getElementById('footer-title').getAttribute('href');
+            if(t && !t.endsWith('#') && t !== '#') navigateTo(t);
+        };
+
+        // SPA Page Router & Script Executer
+        function navigateTo(url, pushState = true) {
+            if (!url || url.includes('logout.php') || url.includes('admin/') || (url.startsWith('http') && !url.startsWith(window.location.origin))) {
+                window.location.href = url;
+                return;
+            }
+
+            const ajaxUrl = url.includes('?') ? (url + '&ajax=1') : (url + '?ajax=1');
+            fetch(ajaxUrl, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Not OK');
+                return res.text();
+            })
+            .then(html => {
+                const container = document.querySelector('main .overflow-y-auto > div');
+                if (container) {
+                    container.innerHTML = html;
+                    
+                    // Execute script tags in the new content
+                    const scripts = container.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                        if (oldScript.src) {
+                            newScript.src = oldScript.src;
+                        } else {
+                            newScript.textContent = oldScript.textContent;
+                        }
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+
+                    // Scroll to top
+                    document.querySelector('main .overflow-y-auto').scrollTop = 0;
+
+                    // Update browser history
+                    if (pushState) {
+                        history.pushState({ url: url }, '', url);
+                    }
+
+                    // Update sidebar active styling
+                    updateSidebarActiveStyle(url);
+                }
+            })
+            .catch(err => {
+                console.warn('Navigation failed via AJAX, falling back to full reload:', err);
+                window.location.href = url;
+            });
+        }
+
+        function updateSidebarActiveStyle(url) {
+            const path = url.split('/').pop().split('?')[0] || 'index.php';
+            const sidebarLinks = document.querySelectorAll('aside nav a');
+            sidebarLinks.forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (linkHref === path) {
+                    link.classList.add('text-white');
+                    link.classList.remove('text-slate-300');
+                } else {
+                    link.classList.remove('text-white');
+                    link.classList.add('text-slate-300');
+                }
+            });
+        }
+
+        // Intercept link clicks
+        document.addEventListener('click', function(e) {
+            const anchor = e.target.closest('a');
+            if (!anchor) return;
+            
+            const href = anchor.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || anchor.getAttribute('target') === '_blank') return;
+            
+            if (href.includes('logout.php') || href.includes('admin/') || (href.startsWith('http') && !href.startsWith(window.location.origin))) {
+                return;
+            }
+            
+            e.preventDefault();
+            navigateTo(href);
+        });
+
+        // Intercept search form submit (GET)
+        document.addEventListener('submit', function(e) {
+            const form = e.target.closest('form');
+            if (!form) return;
+            
+            const action = form.getAttribute('action') || window.location.pathname;
+            const method = (form.getAttribute('method') || 'GET').toUpperCase();
+            
+            if (method === 'GET' && !action.includes('logout.php') && !action.includes('admin/')) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData).toString();
+                const url = action + (action.includes('?') ? '&' : '?') + params;
+                navigateTo(url);
+            }
+        });
+
+        // Handle back/forward buttons
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.url) {
+                navigateTo(e.state.url, false);
+            } else {
+                navigateTo(window.location.pathname + window.location.search, false);
+            }
+        });
+
+        // Initialize state
+        if (!history.state) {
+            history.replaceState({ url: window.location.pathname + window.location.search }, '', window.location.href);
         }
     </script>
 </body>

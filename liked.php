@@ -66,10 +66,10 @@ while($row = mysqli_fetch_assoc($songs_result)) {
     <div class="px-6 pb-24 flex-1">
         <?php if (count($tracks_array) > 0): ?>
             <script>
-                const currentLikedQueue = <?php echo json_encode($tracks_array); ?>;
+                window.currentLikedQueue = <?php echo json_encode($tracks_array); ?>;
                 function playLikedPlaylist() {
                     if (typeof window.playQueue === 'function') {
-                        window.playQueue(currentLikedQueue, 0);
+                        window.playQueue(window.currentLikedQueue, 0);
                     }
                 }
             </script>

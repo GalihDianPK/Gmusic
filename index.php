@@ -55,7 +55,8 @@ while($row = mysqli_fetch_assoc($result_quick)) {
     
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-8">
         <?php foreach($quick_tracks as $index => $song): ?>
-        <div class="bg-white/5 hover:bg-white/20 transition-colors rounded overflow-hidden flex items-center cursor-pointer group relative h-16 sm:h-20 shadow-sm hover:shadow-md"
+        <?php $grad_class = 'card-grad-' . (($index % 6) + 1); ?>
+        <div class="quick-pick-card <?php echo $grad_class; ?> rounded-xl overflow-hidden flex items-center cursor-pointer group relative h-16 sm:h-20 shadow-sm hover:shadow-md"
              onclick="playQueue(quickTracksQueue, <?php echo $index; ?>)">
             <div class="h-full aspect-square bg-card-dark shrink-0 relative z-10 shadow-[4px_0_12px_rgba(0,0,0,0.3)]">
                 <img src="uploads/covers/<?php echo htmlspecialchars($song['coverUrl']); ?>" class="w-full h-full object-cover">
@@ -81,7 +82,8 @@ while($row = mysqli_fetch_assoc($result_quick)) {
 
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
         <?php foreach($recent_tracks as $index => $song): ?>
-        <div class="bg-[#181818] hover:bg-[#282828] p-4 rounded-lg transition-colors cursor-pointer group relative flex flex-col items-center"
+        <?php $grad_class = 'card-grad-' . (($index % 6) + 1); ?>
+        <div class="song-card <?php echo $grad_class; ?> p-4 rounded-xl cursor-pointer group relative flex flex-col items-center"
              onclick="playQueue(recentTracksQueue, <?php echo $index; ?>)">
             
             <div class="w-full aspect-square rounded-md overflow-hidden mb-4 relative shadow-lg">

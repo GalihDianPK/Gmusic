@@ -13,7 +13,7 @@ if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolo
                 <span>Now Playing View</span>
                 <span class="material-symbols-outlined text-slate-400 text-sm">close</span>
             </h3>
-            <div class="w-full bg-[#181818] rounded-xl overflow-hidden shadow-2xl relative group">
+            <div class="w-full bg-card-dark rounded-xl overflow-hidden shadow-lg border border-white/20 relative group">
                 <!-- Cover Fallback / Loading -->
                 <img src="uploads/covers/default_cover.jpg" id="mini-cover" class="w-full aspect-square object-cover opacity-50 hidden">
                 
@@ -25,10 +25,10 @@ if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolo
                     <p class="text-sm text-slate-400 truncate" id="mini-artist">-</p>
                 </div>
             </div>
-            <div class="mt-4 p-4 bg-[#181818] rounded-xl h-48 border border-white/5 flex flex-col items-center justify-center text-center">
+            <div class="mt-4 p-4 bg-card-dark rounded-xl h-48 border border-white/20 flex flex-col items-center justify-center text-center">
                  <span class="material-symbols-outlined text-4xl text-slate-500 mb-2">lyrics</span>
                  <p class="text-sm text-slate-400 font-bold mb-2">Looking for lyrics?</p>
-                 <a href="#" class="text-xs border border-slate-500 px-4 py-1 rounded-full text-white hover:border-white transition-colors" onclick="toggleLyricsPanel()">Open Player</a>
+                 <a href="#" class="text-xs border border-primary px-4 py-1.5 rounded-full text-primary hover:bg-primary hover:text-white transition-colors" onclick="toggleLyricsPanel()">Open Player</a>
             </div>
         </aside>
 

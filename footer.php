@@ -200,6 +200,62 @@ if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolo
             loadTrackIntoPlayer(queue[currentIndex]);
         };
 
+        // Canvas-based Dominant Color Extractor for dynamic ambient backdrop
+        function getDominantColor(imgUrl, callback) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 10;
+                    canvas.height = 10;
+                    ctx.drawImage(img, 0, 0, 10, 10);
+                    const imgData = ctx.getImageData(0, 0, 10, 10).data;
+                    
+                    let r = 0, g = 0, b = 0, count = 0;
+                    for (let i = 0; i < imgData.length; i += 4) {
+                        const maxVal = Math.max(imgData[i], imgData[i+1], imgData[i+2]);
+                        const minVal = Math.min(imgData[i], imgData[i+1], imgData[i+2]);
+                        if (maxVal < 235 && minVal > 20) {
+                            r += imgData[i];
+                            g += imgData[i+1];
+                            b += imgData[i+2];
+                            count++;
+                        }
+                    }
+                    if (count === 0) {
+                        for (let i = 0; i < imgData.length; i += 4) {
+                            r += imgData[i];
+                            g += imgData[i+1];
+                            b += imgData[i+2];
+                            count++;
+                        }
+                    }
+                    r = Math.floor(r / count);
+                    g = Math.floor(g / count);
+                    b = Math.floor(b / count);
+                    
+                    // Boost color brightness slightly if it's too dark
+                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                    if (brightness < 40) {
+                        r = Math.min(255, Math.floor(r * 1.5) + 15);
+                        g = Math.min(255, Math.floor(g * 1.5) + 15);
+                        b = Math.min(255, Math.floor(b * 1.5) + 15);
+                    }
+                    
+                    callback(`rgb(${r}, ${g}, ${b})`);
+                } catch(e) {
+                    console.warn("Dominant color calculation failed:", e);
+                    callback('rgb(40, 40, 40)');
+                }
+            };
+            img.onerror = function() {
+                callback('rgb(40, 40, 40)');
+            };
+            img.src = imgUrl;
+        }
+
         function loadTrackIntoPlayer(track) {
             if(!track) return;
             
@@ -227,6 +283,14 @@ if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolo
                 placeholder.classList.remove('hidden');
                 miniCover.src = 'uploads/covers/default_cover.jpg';
             }
+
+            // Update ambient background based on dominant color
+            getDominantColor(coverUrlFull, function(color) {
+                const gradientEl = document.querySelector('.main-content-gradient');
+                if (gradientEl) {
+                    gradientEl.style.setProperty('background', `linear-gradient(to bottom, ${color} -10%, #121212 360px)`, 'important');
+                }
+            });
 
             // Sync with Player Page or navigate to it
             navigateTo("player.php?id=" + track.id);
@@ -348,7 +412,11 @@ if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolo
                 const progressPercent = (current / duration) * 100;
                 progressBar.style.width = `${progressPercent}%`;
             }
-            // Roughly sync video time just in case, but usually just letting them play parallel is smoother
+            
+            // Sync Synced Lyrics in real-time if active in player page
+            if (typeof window.syncPlayerLyricsTime === 'function') {
+                window.syncPlayerLyricsTime(current);
+            }
         });
 
         progressContainer.addEventListener('click', (e) => {

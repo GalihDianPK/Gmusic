@@ -100,6 +100,51 @@ if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolo
         /* Main Page Content Soft Gradient Latar Belakang (Spotify-style) */
         .main-content-gradient {
             background: linear-gradient(to bottom, #222222 0%, #121212 340px) !important;
+            transition: background 1.2s ease-in-out !important;
+        }
+        
+        /* Synced Lyrics Karaoke View Container */
+        .lyrics-scroll-container {
+            height: 400px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-right: 12px;
+            position: relative;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
+        }
+        .lyrics-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .lyrics-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        .lyrics-scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        /* Lyric Lines styling with smooth hover and scaling transitions */
+        .lyric-line {
+            padding: 8px 0;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left center;
+            opacity: 0.3;
+            color: #94a3b8;
+        }
+        .lyric-line:hover {
+            color: #ffffff !important;
+            opacity: 0.8 !important;
+            transform: scale(1.02);
+        }
+        .lyric-line.active {
+            color: #1db954 !important;
+            opacity: 1 !important;
+            transform: scale(1.06);
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(29, 185, 84, 0.35);
         }
         
         /* Gradient variations for normal state - subtle dark green/black mix */
@@ -499,7 +544,7 @@ if (isset($_GET['ajax']) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolo
         <main class="flex-1 bg-card-dark md:rounded-lg md:my-2 md:mr-2 flex flex-col overflow-hidden relative w-full">
             
             <!-- Topbar (Sticky) -->
-            <header class="h-16 flex items-center justify-between px-6 bg-card-dark sticky top-0 z-10 border-b border-white/5 shadow-md">
+            <header class="h-16 flex items-center justify-between px-6 bg-card-dark sticky top-0 z-30 border-b border-white/5 shadow-md">
                 <div class="flex items-center gap-2">
                     <button class="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-slate-300 hover:text-white" onclick="history.back()">
                         <span class="material-symbols-outlined text-xl">chevron_left</span>

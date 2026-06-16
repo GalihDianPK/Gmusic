@@ -6,7 +6,29 @@ Dokumen ini disusun untuk membantumu memahami setiap detail teknis dari aplikasi
 
 ---
 
-## 1. Alur Sistem & Cara Kerja (Bagaimana Web Berjalan)
+## 1. Rangka Dasar & Struktur Modular Web
+
+Aplikasi ini menggunakan pendekatan **Modular (Komponen)** di mana kode antarmuka dipecah menjadi bagian-bagian kecil yang dapat digunakan kembali di berbagai halaman.
+
+### A. Analogi Komponen "Lego"
+Setiap halaman web yang diakses pengguna dirakit dari tiga bagian utama:
+1. **Kepala & Tangan Kiri (Header + Sidebar Kiri)**: Menggunakan file [header.php](file:///c:/xampp/htdocs/web-programan/header.php). Bagian ini berisi menu navigasi, profil, pencarian, dan daftar playlist yang bersifat statis (selalu sama di setiap halaman).
+2. **Badan (Konten Dinamis Tengah)**: Bagian yang berubah-ubah tergantung halaman yang diakses (misalnya [index.php](file:///c:/xampp/htdocs/web-programan/index.php) untuk dashboard, [search.php](file:///c:/xampp/htdocs/web-programan/search.php) untuk pencarian, atau [liked.php](file:///c:/xampp/htdocs/web-programan/liked.php) untuk daftar favorit).
+3. **Kaki (Footer + Pemutar Musik)**: Menggunakan file [footer.php](file:///c:/xampp/htdocs/web-programan/footer.php). Bagian ini berisi bar kontrol musik global dan kode pemutar musik berbasis HTML5 `<audio>` serta AJAX SPA Router.
+
+### B. Cara PHP Menggabungkannya
+PHP menggabungkan file-file ini secara dinamis saat halaman diakses. Contoh perakitan di dalam beranda utama [index.php](file:///c:/xampp/htdocs/web-programan/index.php):
+- Baris pertama: `require 'header.php';` dan `require 'koneksi.php';`
+- Baris tengah: HTML tampilan isi halaman dashboard.
+- Baris terakhir: `require 'footer.php';`
+
+### C. Folder Utama Proyek
+- 📁 **`admin/`**: Panel kontrol khusus admin untuk mengelola lagu dan tema web.
+- 📁 **`uploads/`**: Direktori penyimpanan media (audio `.mp3`, gambar cover, dan video `.mp4`).
+
+---
+
+## 2. Alur Sistem & Cara Kerja (Bagaimana Web Berjalan)
 
 Secara umum, web ini bekerja dengan alur sebagai berikut:
 
@@ -37,7 +59,7 @@ graph TD
 
 ---
 
-## 2. Fitur Kunci: Custom SPA (Single Page Application) Router
+## 3. Fitur Kunci: Custom SPA (Single Page Application) Router
 > **PENTING!** Ini adalah fitur paling keren di web ini. Penguji kemungkinan besar akan bertanya: *"Bagaimana bisa lagunya tidak mati atau terputus waktu kita ganti halaman?"*
 
 ### Cara Kerja SPA Router di GMusic:
@@ -66,7 +88,7 @@ Dengan cara ini, **elemen `<audio>` di footer tidak pernah hancur atau ter-reloa
 
 ---
 
-## 3. Koneksi & Skema Database (Pemasangan Primary Key)
+## 4. Koneksi & Skema Database (Pemasangan Primary Key)
 
 Koneksi ke database MySQL diatur terpusat di file [koneksi.php](file:///c:/xampp/htdocs/web-programan/koneksi.php) menggunakan pustaka bawaan PHP, yaitu **MySQLi**:
 ```php
@@ -147,7 +169,7 @@ erDiagram
 
 ---
 
-## 4. Fungsi dari Setiap File
+## 5. Fungsi dari Setiap File
 
 Berikut adalah fungsi dan peran masing-masing file dalam proyekmu:
 
@@ -186,7 +208,7 @@ File di dalam folder ini hanya bisa diakses oleh pengguna yang memiliki status `
 
 ---
 
-## 5. Kisi-kisi Tanya Jawab (Q&A) Saat Presentasi
+## 6. Kisi-kisi Tanya Jawab (Q&A) Saat Presentasi
 
 Berikut adalah beberapa pertanyaan yang sangat sering diajukan oleh dosen/penguji beserta jawaban taktis yang bisa kamu gunakan:
 
